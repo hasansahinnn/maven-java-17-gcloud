@@ -1,21 +1,12 @@
-FROM maven:3.8.4-openjdk-17 AS base
+FROM maven:3.8.4-openjdk-17-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CLOUDSDK_CORE_DISABLE_PROMPTS=1
 
-# ---- system deps + python3.9 ----
 RUN set -eux; \
+    command -v apt-get; \
     apt-get update; \
-    apt-get install -y --no-install-recommends \
-      ca-certificates curl tar xz-utils gnupg; \
-    \
-    if apt-cache show python3.9 >/dev/null 2>&1; then \
-      apt-get install -y --no-install-recommends python3.9 python3.9-distutils; \
-      ln -sf /usr/bin/python3.9 /usr/local/bin/python3; \
-    else \
-      apt-get install -y --no-install-recommends python3 python3-distutils python3-pip; \
-    fi; \
-    \
+    apt-get install -y --no-install-recommends ca-certificates curl tar xz-utils gnupg python3 python3-pip; \
     rm -rf /var/lib/apt/lists/*
 
 ARG SDK_VERSION=404.0.0
@@ -29,10 +20,8 @@ RUN set -eux; \
 
 ENV PATH="/opt/google-cloud-sdk/bin:${PATH}"
 
-# ---- components ----
 RUN set -eux; \
     gcloud --version; \
-    gcloud components install app-engine-java --quiet; \
-    gcloud components list --only-local-state | head -n 200
+    gcloud components install app-engine-java --quiet
 
 WORKDIR /workspace
